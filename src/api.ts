@@ -13,20 +13,20 @@ export type CasinoGameMines = {
 export const wait = () =>
   new Promise<void>(resolve => setTimeout(resolve, Math.random() * 500 + 200));
 
-let gameState: CasinoGameMines = {
+export const gameState: CasinoGameMines = {
   minesCount: 5,
   mines: [],
   revealedTiles: [],
   state: "idle"
 };
 
-const minesFields = _.range(0, 25);
+export const minesFields = _.range(0, 25); //return array from 0 to 24
 
 export const minesBet = async () => {
   await wait();
 
-  const newRoundTiles = _.shuffle(minesFields);
-  gameState.mines = newRoundTiles.slice(0, 5);
+  const newRoundTiles = _.shuffle(minesFields); //returns an array of shuffled values
+  gameState.mines = newRoundTiles.slice(0, 5); //returns the first five elements of the shuffled array
   gameState.revealedTiles = [];
 
   return getGameState("progress");
@@ -47,9 +47,9 @@ export const minesNext = async (tileToReveal: number) => {
 const getGameState = (state: State) => {
   gameState.state = state;
 
-  if (state === "progress") {
-    return { ...gameState, mines: [] };
-  }
+  // if (state === "progress") {
+  //   return { ...gameState, mines: [] };
+  // }
 
   return gameState;
 };

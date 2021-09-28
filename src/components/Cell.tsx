@@ -1,35 +1,69 @@
 import React from 'react';
 import styled from "styled-components";
-import { Gem } from "../assets";
+import { minesNext, gameState } from '../api';
+import { Gem, Mine } from "../assets";
 import gemAudio from "../assets/gem.mp3";
 import mineAudio from "../assets/mine.mp3";
 
-
-const Cell = (): React.ReactElement => {
+interface CellProps{
+    yellowText: string,
+    id: number,
+    boardState: string,
+    setBoardState: (boardState: string) => void
+}
+const Cell = ({ 
+    yellowText, 
+    id,
+    boardState,
+    setBoardState,
+}: CellProps): React.ReactElement => {
 
     const [clicked, setClicked] = React.useState<boolean>(false);
     const gemSound = new Audio(gemAudio);
     const mineSound = new Audio(mineAudio);
-    const handleClick= () => {
+
+    const handleClick= async () => {
+        if(boardState === "busted"){
+            return;
+        }
+
         if(!clicked){
-            setClicked(true); 
-            gemSound.play();    
+            await minesNext(id);
+            setClicked(true);
+            if(gameState.mines.includes(id)){
+                setBoardState("busted");
+                mineSound.play();    
+            }else{
+                gemSound.play();    
+            }
         }
     }
 
     return (
-        <CellBox onClick={handleClick} className={`${clicked && 'show'}`}>
-          <div className="gem">
-            <Gem width="auto" height="100%" />
-          </div>
+        <CellBox 
+            onClick={handleClick}
+            status={gameState.mines.includes(id)} 
+            className={`${clicked && 'show'} ${boardState === "busted" && !clicked && 'busted'}`}
+        >
+            {
+                gameState.mines.includes(id) === true ? (
+                    <div className="mine">
+                        <Mine width="auto" height="100%" />
+                    </div>
+                ): (
+                    <div className="gem">
+                        <Gem width="auto" height="100%" />
+                    </div>
+                )
+            }
           <div className="yellow-tip">
-            <p>Does lightning strike twice?</p>
+            <p>{yellowText}</p> 
           </div>
         </CellBox>
     )
 }
 
-const CellBox = styled.div`
+const CellBox = styled.div<{status: boolean}>`
 
     background-color: #0f212E;
     border-radius: 5px;
@@ -39,7 +73,7 @@ const CellBox = styled.div`
     position: relative;
     overflow: hidden;
 
-    .gem{
+    .gem, .mine{
       position: absolute;
       top: 50%;
       left: 50%;
@@ -47,7 +81,7 @@ const CellBox = styled.div`
       transform: translate(-50%, -50%);
       height: 50%;
       transition: all 0.5s ease;
-      z-Index: 5;
+      z-ndex: 5;
     }
 
     .yellow-tip{
@@ -107,16 +141,39 @@ const CellBox = styled.div`
     }
 
     &.show{
-        background-color: #09fd0282;
+        background-color: ${props => props.status ? '#fd013e82': '#09fd0282'};  
 
         .gem{
             opacity: 1;
             height: 80%;
             width: 80%;
         }
+        .mine{
+            opacity: 1;
+            height: 80%;
+            width: 80%; 
+            animation: pump 0.8s 0.2s ease infinite;
+
+        }
 
         .yellow-tip{
             display: none;
+        }
+    }
+
+    &.busted{
+        background-color: ${props => props.status ? '#fd013e40': '#09fd0240'};  
+         
+        .gem, .mine{
+            opacity: 0.6;
+            height: 40%;
+            width: 40%;
+        }
+
+        &:hover{
+            .yellow-tip{
+                display: none;
+            }
         }
     }
 
@@ -138,6 +195,18 @@ const CellBox = styled.div`
         }
         100% {
           background-color: yellow;
+        }
+    }
+
+    @keyframes pump {
+        0% {
+            width: 65%;
+        }
+        50% {
+            width: 80%;
+        }
+        100% {
+            width: 65%;
         }
     }
 `;
