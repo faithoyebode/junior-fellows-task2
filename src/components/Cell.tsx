@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from "styled-components";
-import { minesNext, gameState } from '../api';
+import { minesNext, gameState, CasinoGameMines } from '../api';
 import { Gem, Mine } from "../assets";
 import gemAudio from "../assets/gem.mp3";
 import mineAudio from "../assets/mine.mp3";
@@ -8,14 +8,14 @@ import mineAudio from "../assets/mine.mp3";
 interface CellProps{
     yellowText: string,
     id: number,
-    boardState: string,
-    setBoardState: (boardState: string) => void
+    gameState: CasinoGameMines,
+    setGameState: (props: CasinoGameMines) => void
 }
 const Cell = ({ 
     yellowText, 
     id,
-    boardState,
-    setBoardState,
+    gameState,
+    setGameState
 }: CellProps): React.ReactElement => {
 
     const [clicked, setClicked] = React.useState<boolean>(false);
@@ -23,7 +23,7 @@ const Cell = ({
     const mineSound = new Audio(mineAudio);
 
     const handleClick= async () => {
-        if(boardState === "busted"){
+        if(gameState.state === "busted"){
             return;
         }
 
@@ -31,19 +31,29 @@ const Cell = ({
             await minesNext(id);
             setClicked(true);
             if(gameState.mines.includes(id)){
-                setBoardState("busted");
-                mineSound.play();    
+                setGameState({
+                    ...gameState,
+                    state: "busted"
+                }); 
+                mineSound.play();
             }else{
                 gemSound.play();    
             }
         }
     }
 
+    React.useEffect(() => {
+        if(clicked && gameState.state === "idle"){
+            setClicked(false);
+        }
+    }, [gameState]);
+
+
     return (
         <CellBox 
             onClick={handleClick}
             status={gameState.mines.includes(id)} 
-            className={`${clicked && 'show'} ${boardState === "busted" && !clicked && 'busted'}`}
+            className={`${clicked && 'show'} ${gameState.state === "busted" && !clicked && 'busted'}`}
         >
             {
                 gameState.mines.includes(id) === true ? (

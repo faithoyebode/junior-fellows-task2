@@ -1,7 +1,7 @@
 // following API - this is how to not write an API
 import _ from "lodash";
 
-type State = "idle" | "progress" | "cashout" | "busted";
+export type State = "idle" | "progress" | "cashout" | "busted";
 
 export type CasinoGameMines = {
   minesCount: number;
@@ -13,7 +13,7 @@ export type CasinoGameMines = {
 export const wait = () =>
   new Promise<void>(resolve => setTimeout(resolve, Math.random() * 500 + 200));
 
-export const gameState: CasinoGameMines = {
+export let gameState: CasinoGameMines = {
   minesCount: 5,
   mines: [],
   revealedTiles: [],
@@ -47,9 +47,14 @@ export const minesNext = async (tileToReveal: number) => {
 const getGameState = (state: State) => {
   gameState.state = state;
 
-  // if (state === "progress") {
-  //   return { ...gameState, mines: [] };
-  // }
+  if (state === "idle") {
+    gameState = {
+      minesCount: 5,
+      mines: [],
+      revealedTiles: [],
+      state: "idle"
+    };
+  }
 
   return gameState;
 };
